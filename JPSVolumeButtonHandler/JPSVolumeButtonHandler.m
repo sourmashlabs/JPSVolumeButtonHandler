@@ -63,7 +63,6 @@ static CGFloat minVolume                    = 0.00001f;
 }
 
 - (void)startHandler:(BOOL)disableSystemVolumeHandler {
-    [self setupSession];
     self.volumeView.hidden = NO; // Start visible to prevent changes made during setup from showing default volume
     self.disableSystemVolumeHandler = disableSystemVolumeHandler;
 
@@ -72,6 +71,7 @@ static CGFloat minVolume                    = 0.00001f;
 }
 
 - (void)stopHandler {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(setupSession) object:nil];
     if (!self.isStarted) {
         // Prevent stop process when already stop
         return;
