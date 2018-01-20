@@ -67,16 +67,18 @@ static CGFloat minVolume                    = 0.00001f;
     self.disableSystemVolumeHandler = disableSystemVolumeHandler;
 
     // There is a delay between setting the volume view before the system actually disables the HUD
-    [self performSelector:@selector(setupSession) withObject:nil afterDelay:1];
+    //[self performSelector:@selector(setupSession) withObject:nil afterDelay:1];
+    [self setupSession];
 }
 
 - (void)stopHandler {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(setupSession) object:nil];
     if (!self.isStarted) {
         // Prevent stop process when already stop
         return;
     }
-    
+
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(startObservingAudioChanges) object:nil];
+
     self.isStarted = NO;
     
     self.volumeView.hidden = YES;
@@ -115,12 +117,6 @@ static CGFloat minVolume                    = 0.00001f;
         return;
     }
 
-    // Observe outputVolume
-    [self.session addObserver:self
-                   forKeyPath:sessionVolumeKeyPath
-                      options:(NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew)
-                      context:sessionContext];
-
     // Audio session is interrupted when you send the app to the background,
     // and needs to be set to active again when it goes to app goes back to the foreground
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -138,6 +134,17 @@ static CGFloat minVolume                    = 0.00001f;
                                                object:nil];
 
     self.volumeView.hidden = !self.disableSystemVolumeHandler;
+    
+    [self performSelector:@selector(startObservingAudioChanges) withObject:nil afterDelay:1];
+}
+
+- (void)startObservingAudioChanges
+{
+    // Observe outputVolume
+    [self.session addObserver:self
+                   forKeyPath:sessionVolumeKeyPath
+                      options:(NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew)
+                      context:sessionContext];
 }
 
 - (void) useExactJumpsOnly:(BOOL)enabled{
